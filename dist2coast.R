@@ -1,8 +1,8 @@
 # Supplemental Code for “Coupling of Coastal Activity with Tidal Cycles 
 # is Stronger in Tool-using Capuchins (Cebus capucinus imitator)"
 
-# Zoë Goldsborough, Margaret Crofoot, Shauhin Alavi, Sylvia Garza, 
-# Evelyn Del Rosario, Kate Tiedeman, Claudio Monteza & Brendan Barrett
+# Zoë Goldsborough, Margaret Crofoot, Shauhin Alavi, 
+# Evelyn Del Rosario, Sylvia Garza, Kate Tiedeman, & Brendan Barrett
 # 2023
 
 ## Calculating distance to coast 

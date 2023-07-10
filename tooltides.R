@@ -1,13 +1,11 @@
 # Supplemental Code for “Coupling of Coastal Activity with Tidal Cycles 
 # is Stronger in Tool-using Capuchins (Cebus capucinus imitator)"
 
-# Zoë Goldsborough, Margaret Crofoot, Shauhin Alavi, Sylvia Garza, 
-# Evelyn Del Rosario, Kate Tiedeman, Claudio Monteza & Brendan Barrett
+# Zoë Goldsborough, Margaret Crofoot, Shauhin Alavi, 
+# Evelyn Del Rosario, Sylvia Garza, Kate Tiedeman, & Brendan Barrett
 # 2023
 
-# Script author: Z Goldsborough
-
-# setwd("~/Git/camtrap_coiba/tide_analysis")
+# setwd("/Users/Zoe Goldsborough/Documents/GitHub/camtrap_coiba/tide_analysis")
 
 ## Packages required
 library(viridis)
@@ -34,9 +32,9 @@ tooltides$seasonF <- factor(tooltides$seasonF, levels = c("Dry", "Wet"))
 tooltides$locationfactor <- as.factor(tooltides$locationfactor)
 
 ## z-transform distance to coast, time to low tide and hour of day
-tooltides$distcoast_z <- scale(tooltides$distcoast, center = TRUE, scale = TRUE)
-tooltides$tidedif_z <- scale(tooltides$tidedif, center = TRUE, scale = TRUE)
-tooltides$hour_z <- scale(tooltides$hour, center = TRUE, scale = TRUE)
+tooltides$distcoast_z <- as.numeric(scale(tooltides$distcoast, center = TRUE, scale = TRUE))
+tooltides$tidedif_z <- as.numeric(scale(tooltides$tidedif, center = TRUE, scale = TRUE))
+tooltides$hour_z <- as.numeric(scale(tooltides$hour, center = TRUE, scale = TRUE))
 
 # store mean and sd for each variable for easy back-transformation to real scale
 meandist <- mean(tooltides$distcoast)
@@ -68,7 +66,7 @@ tidal_prior <- c(prior(normal(0, 2), class = Intercept),
 tbm1_prior <- brm(n  ~ t2(tidedif_z, distcoast_z, bs = c("cc", "tp"), k = c(10, 6), full = TRUE) +
                     t2(tidedif_z, distcoast_z, bs = c("cc", "tp"), by = toolusers, k = c(10, 6), m = 1) + toolusers +
                     s(locationfactor, bs = "re"), family = poisson(),  knots = list(tidedif_z =c(-1.8,1.8)),  data = tooltides, chain = 2, core = 2, iter = 1000,
-                  prior = tidal_prior, samp3le_prior = "only", backend = "cmdstanr")
+                  prior = tidal_prior, sample_prior = "only", backend = "cmdstanr", refresh = 100)
 
 summary(tbm1_prior)
 prior_summary(tbm1_prior)
@@ -99,8 +97,8 @@ tbm1 <- brm(n  ~ t2(tidedif_z, distcoast_z, bs = c("cc", "tp"), k = c(10, 6), fu
 # tbm1 <- add_criterion(tbm1, c("loo", "loo_R2", "bayes_R2"), moment_match = TRUE, control = list(adapt_delta = 0.99, max_treedepth = 12), backend = "cmdstanr", ndraws = 4000) 
 
 # Saving and loading model after it ran. Change to location where you'd want to save the object
-#saveRDS(tbm1, "ModelRDS/tbm1_final.rds")
-#tbm1 <- readRDS("ModelRDS/tbm1_final.rds")
+#saveRDS(tbm1, "ModelRDS/tbm1_all.rds")
+#tbm1 <- readRDS("ModelRDS/tbm1_all.rds")
 
 # Diagnostics
 mcmc_plot(tbm1,type = "trace")
@@ -148,12 +146,12 @@ ggplot(data = d2_t, aes(x = tidedif, y = distcoast, z = fit)) +
 cam1 <- plot(conditional_effects(tbm1), plot = FALSE)[[7]]
 
 # for saving as PNG can uncomment line below and "dev.off" line.
-#png("ModelRDS/tbm1_camlocations.png", width = 11, height = 7, units = 'in', res = 300)
+#png("ModelRDS/tbm1_camlocations.png", width = 14, height = 10, units = 'in', res = 300)
 cam1  + theme_bw() + 
   stat_summary(data = tooltides, inherit.aes = FALSE, aes(x = locationfactor, y = n, group = toolusers, fill = toolusers), 
                geom = "point", fun = "mean", size = 4, shape = 24, alpha = 0.5) +
   labs(y = "Average number of capuchins per sequence", x = "Camera Location", fill = "Group") +
-  theme(axis.text.x = element_text(angle = 90), strip.text.x = element_text(size = 14), 
+  theme(axis.text.x = element_text(angle = 90, size = 10), 
         axis.title = element_text(size = 16), legend.text =  element_text(size = 14), 
         legend.title = element_text(size =16), axis.text = element_text(size = 12))
 #dev.off()  
@@ -171,8 +169,8 @@ tbm2 <- brm(n ~ t2(tidedif_z, distcoast_z, bs = c("cc", "tp"), k = c(10, 6), ful
 # tbm2 <- add_criterion(tbm2, c("loo", "loo_R2", "bayes_R2"), moment_match = TRUE, control = list(adapt_delta = 0.99), backend = "cmdstanr", ndraws = 4000) 
 
 # Saving and loading model after it ran
-#saveRDS(tbm2, "ModelRDS/tbm2_final.rds")
-#tbm2 <- readRDS("ModelRDS/tbm2_final.rds")
+#saveRDS(tbm2, "ModelRDS/tbm2_all.rds")
+#tbm2 <- readRDS("ModelRDS/tbm2_all.rds")
 
 # Diagnostics
 mcmc_plot(tbm2,type = "trace")
@@ -239,8 +237,8 @@ tbm2a <- brm(n  ~ t2(tidedif_z, distcoast_z, bs = c("cc", "tp"), k = c(10, 6), f
 #tbm2a <- add_criterion(tbm2a, c("loo", "loo_R2", "bayes_R2"), reloo = TRUE, control = list(adapt_delta = 0.99), backend = "cmdstanr", ndraws = 4000) 
 
 # Saving and loading model object
-#saveRDS(tbm2a, "ModelRDS/tbm2a_final.rds")
-#tbm2a <- readRDS("ModelRDS/tbm2a_final.rds")
+#saveRDS(tbm2a, "ModelRDS/tbm2a_all.rds")
+#tbm2a <- readRDS("ModelRDS/tbm2a_all.rds")
 
 # Diagnostics
 mcmc_plot(tbm2a,type = "trace")
@@ -306,8 +304,8 @@ tbm2_h <- brm(n ~ t2(hour_z, distcoast_z, bs = c("tp", "tp"), k = c(10, 6), full
 # tbm2_h <- add_criterion(tbm2_h, c("loo", "loo_R2", "bayes_R2"), moment_match = TRUE, control = list(adapt_delta = 0.99), backend = "cmdstanr", ndraws = 4000) 
 
 # Saving and loading model object
-#saveRDS(tbm2_h, "ModelRDS/tbm2_hfinal.rds")
-#tbm2_h <- readRDS("ModelRDS/tbm2_hfinal.rds")
+#saveRDS(tbm2_h, "ModelRDS/tbm2_hall.rds")
+#tbm2_h <- readRDS("ModelRDS/tbm2_hall.rds")
 
 # Diagnostics
 mcmc_plot(tbm2_h,type = "trace")
@@ -358,8 +356,8 @@ tbm2a_h <- brm(n ~ t2(hour_z, distcoast_z, bs = c("tp", "tp"), k = c(10, 6), ful
 #tbm2a_h <- add_criterion(tbm2a_h, c("loo", "loo_R2", "bayes_R2"), moment_match = TRUE, control = list(adapt_delta = 0.99), backend = "cmdstanr", ndraws = 5000) 
 
 # Saving and loading model object
-#saveRDS(tbm2a_h, "ModelRDS/tbm2a_hfinal.rds")
-#tbm2a_h <- readRDS("ModelRDS/tbm2a_hfinal.rds")
+#saveRDS(tbm2a_h, "ModelRDS/tbm2a_hall.rds")
+#tbm2a_h <- readRDS("ModelRDS/tbm2a_hall.rds")
 
 # Diagnostics
 mcmc_plot(tbm2a_h,type = "trace")
@@ -903,6 +901,21 @@ p <- plot_grid(prow, legend_b, ncol = 2, rel_widths = c(1, .4))
 p
 #dev.off()
 
+### Supplemental plot zoomed in
+#png("ModelRDS/tusvsntu_predder_p_zoomed.png", width = 12, height = 6, units = 'in', res = 300)
+ggplot() +
+  geom_contour_filled(data = tbm1_p_merge, breaks = mybreaks, show.legend = TRUE, aes(x = tidedif, y = distcoast, z = fit), alpha = 1) +
+  scale_fill_manual(values = inferncol, name = "Change nr of capuchins", drop = FALSE) +
+  geom_rug(data = tooltides, aes(x = tidedif, y = distcoast),alpha = 0.05, inherit.aes = FALSE) + 
+  new_scale_fill() + 
+  geom_raster(data = na.omit(tbm1_p_merge[tbm1_p_merge$confidence == 70,]), inherit.aes = FALSE, show.legend = FALSE, aes(x = tidedif, y = distcoast, alpha = as.factor(Significance_p)), fill = "white") + 
+  scale_alpha_manual(values = c(0.3, 0), guide = "none")  + coord_cartesian(ylim=c(0,50)) +
+  facet_wrap(~toolusers) + theme_bw() + theme(panel.grid = element_blank())  +
+  labs(x = "Hours until and after nearest low tide (=0)", y = "Distance to coast (m)", fill = "Change nr of capuchins") +
+  theme(strip.text.x = element_text(size = 16), axis.title = element_text(size = 18), legend.text =  element_text(size = 16), plot.title = element_text(size = 20),
+        legend.title = element_text(size =16), axis.text = element_text(size=16))
+#dev.off()
+
 # Not used in manuscript, but can also plot areas with certain levels of confidence (e.g. 70) as alternative to the % on one side approach
 ggplot() +
   geom_contour_filled(data = tbm1_p_merge, breaks = mybreaks, show.legend = TRUE, aes(x = tidedif, y = distcoast, z = fit), alpha = 0.7) +
@@ -995,6 +1008,22 @@ p2 <- plot_grid(prow2, legend_b2, ncol = 2, rel_widths = c(1, .4))
 p2
 #dev.off()
 
+### Zoomed in plot of 50 m region
+# png("ModelRDS/toolusers_predder_p_zoom.png", width = 12, height = 6, units = 'in', res = 300)
+ggplot() +
+  geom_contour_filled(data = tbm2_p_merge, breaks = mybreaks, show.legend = TRUE, aes(x = tidedif, y = distcoast, z = fit), alpha = 1) +
+  scale_fill_manual(values = inferncol, name = "Change nr of capuchins", drop = FALSE) +
+  geom_rug(data = tooltides[tooltides$toolusers == "Tool-users",], aes(x = tidedif, y = distcoast),alpha = 0.05, inherit.aes = FALSE) + 
+  new_scale_fill() + 
+  geom_raster(data = na.omit(tbm2_p_merge[tbm2_p_merge$confidence == 70,]), inherit.aes = FALSE, show.legend = FALSE, aes(x = tidedif, y = distcoast, alpha = as.factor(Significance_p)), fill = "white") + 
+  scale_alpha_manual(values = c(0.3, 0), guide = "none")  + coord_cartesian(ylim = c(0,50)) +
+  facet_wrap(~seasonF) + theme_bw() + theme(panel.grid = element_blank())  +
+  labs(x = "Hours until and after nearest low tide (=0)", y = "Distance to coast (m)", fill = "Change nr of capuchins") +
+  theme(strip.text.x = element_text(size = 16), axis.title = element_text(size = 18), legend.text =  element_text(size = 16), plot.title = element_text(size = 20),
+        legend.title = element_text(size =16), axis.text = element_text(size=16))
+#dev.off()
+
+
 # Not used in manuscript, but can also plot areas with certain levels of confidence (e.g. 70) as alternative to the % on one side approach
 ggplot() +
   geom_contour_filled(data = tbm2_p_merge, breaks = mybreaks, show.legend = TRUE, aes(x = tidedif, y = distcoast, z = fit), alpha = 0.7) +
@@ -1064,7 +1093,6 @@ ggplot() +
   labs(x = "Hours until and after nearest low tide (=0)", y = "Distance to coast (m)", fill = "Change nr of capuchins") +
   theme(strip.text.x = element_text(size = 16), axis.title = element_text(size = 18), legend.text =  element_text(size = 16), plot.title = element_text(size = 20),
         legend.title = element_text(size =16), axis.text = element_text(size=16))
-
 #dev.off()
 
 ### Supplemental plots showing just how much of derivative is on each side of 0
@@ -1086,6 +1114,22 @@ legend_b2a <- get_legend(tbm2a_p1 + theme(legend.position = "right"))
 p2a <- plot_grid(prow2a, legend_b2a, ncol = 2, rel_widths = c(1, .4))
 #png("ModelRDS/tbm2a_abovebelow.png", width = 12, height = 9, units = 'in', res = 300)
 p2a
+#dev.off()
+
+### Supplemental zoomed in plot
+# png("ModelRDS/nontoolusers_predder_p_zoomed.png", width = 12, height = 6, units = 'in', res = 300)
+ggplot() +
+  geom_contour_filled(data = tbm2a_p_merge, breaks = mybreaks, show.legend = TRUE, aes(x = tidedif, y = distcoast, z = fit), alpha = 1) +
+  scale_fill_manual(values = inferncol, name = "Change nr of capuchins", drop = FALSE) +
+  geom_rug(data = tooltides[tooltides$toolusers == "Non-tool-users",], aes(x = tidedif, y = distcoast),alpha = 0.05, inherit.aes = FALSE) + 
+  new_scale_fill() + 
+  geom_raster(data = na.omit(tbm2a_p_merge[tbm2a_p_merge$confidence == 70,]), inherit.aes = FALSE, show.legend = FALSE, aes(x = tidedif, y = distcoast, alpha = as.factor(Significance_p)), fill = "white") + 
+  scale_alpha_manual(values = c(0.3, 0), guide = "none")  + coord_cartesian(ylim = c(0,50)) +
+  facet_wrap(~seasonF) + theme_bw() + theme(panel.grid = element_blank())  +
+  labs(x = "Hours until and after nearest low tide (=0)", y = "Distance to coast (m)", fill = "Change nr of capuchins") +
+  theme(strip.text.x = element_text(size = 16), axis.title = element_text(size = 18), legend.text =  element_text(size = 16), plot.title = element_text(size = 20),
+        legend.title = element_text(size =16), axis.text = element_text(size=16))
+
 #dev.off()
 
 # Not used in manuscript, but can also plot areas with certain levels of confidence (e.g. 70) as alternative to the % on one side approach
@@ -1182,6 +1226,21 @@ p2h <- plot_grid(prow2h, legend_b2h, ncol = 2, rel_widths = c(1, .4))
 p2h
 #dev.off()
 
+### Supplemental plot zoomed in
+#png("ModelRDS/toolusershour_predder_p_zoom.png", width = 12, height = 6, units = 'in', res = 300)
+ggplot() +
+  geom_contour_filled(data = tbm2_h_p_merge, breaks = mybreaks, show.legend = TRUE, aes(x = hour, y = distcoast, z = fit), alpha = 1) +
+  scale_fill_manual(values = inferncol, name = "Change nr of capuchins", drop = FALSE)+
+  geom_rug(data = tooltides[tooltides$toolusers == "Tool-users",], aes(x = hour, y = distcoast),alpha = 0.05, inherit.aes = FALSE) + 
+  new_scale_fill() + 
+  geom_raster(data = na.omit(tbm2_h_p_merge[tbm2_h_p_merge$confidence == 70,]), inherit.aes = FALSE, show.legend = FALSE, aes(x = hour, y = distcoast, alpha = as.factor(Significance_p)), fill = "white") + 
+  scale_alpha_manual(values = c(0.3, 0), guide = "none") + coord_cartesian(ylim = c(0,50)) +
+  facet_wrap(~seasonF) + theme_bw() + theme(panel.grid = element_blank())  +
+  labs(x = "Hour of day", y = "Distance to coast (m)", fill = "Change nr of capuchins") +
+  theme(strip.text.x = element_text(size = 16), axis.title = element_text(size = 18), legend.text =  element_text(size = 16), plot.title = element_text(size = 20),
+        legend.title = element_text(size =16), axis.text = element_text(size=16))
+#dev.off()
+
 # Not used in manuscript, but can also plot areas with certain levels of confidence (e.g. 70) as alternative to the % on one side approach
 ggplot() +
   geom_contour_filled(data = tbm2_h_p_merge, breaks = mybreaks, show.legend = TRUE, aes(x = hour, y = distcoast, z = fit), alpha = 0.7) +
@@ -1263,6 +1322,21 @@ p2ah <- plot_grid(prow2ah, legend_b2ah, ncol = 2, rel_widths = c(1, .4))
 p2ah
 #dev.off()
 
+### Supplemental zoomed plots
+#png("ModelRDS/nontoolusershour_predder_p_zoom.png", width = 12, height = 6, units = 'in', res = 300)
+ggplot() +
+  geom_contour_filled(data = tbm2_ah_p_merge, breaks = mybreaks, show.legend = TRUE, aes(x = hour, y = distcoast, z = fit), alpha = 1) +
+  scale_fill_manual(values = inferncol, name = "Change nr of capuchins", drop = FALSE)+
+  geom_rug(data = tooltides[tooltides$toolusers == "Non-tool-users",], aes(x = hour, y = distcoast),alpha = 0.05, inherit.aes = FALSE) + 
+  new_scale_fill() + 
+  geom_raster(data = na.omit(tbm2_ah_p_merge[tbm2_ah_p_merge$confidence == 70,]), inherit.aes = FALSE, show.legend = FALSE, aes(x = hour, y = distcoast, alpha = as.factor(Significance_p)), fill = "white") + 
+  scale_alpha_manual(values = c(0.3, 0), guide = "none") + coord_cartesian(ylim =c(0,50)) +
+  facet_wrap(~seasonF) + theme_bw() + theme(panel.grid = element_blank())  +
+  labs(x = "Hour of day", y = "Distance to coast (m)", fill = "Change nr of capuchins") +
+  theme(strip.text.x = element_text(size = 16), axis.title = element_text(size = 18), legend.text =  element_text(size = 16), plot.title = element_text(size = 20),
+        legend.title = element_text(size =16), axis.text = element_text(size=16))
+#dev.off()
+
 # Not used in manuscript, but can also plot areas with certain levels of confidence (e.g. 70) as alternative to the % on one side approach
 ggplot() +
   geom_contour_filled(data = tbm2_ah_p_merge, breaks = mybreaks, show.legend = TRUE, aes(x = hour, y = distcoast, z = fit), alpha = 0.7) +
@@ -1283,7 +1357,7 @@ tidaldays2 <- tidaldays[!duplicated(tidaldays$dayloc),]
 
 # make overview of deployments we have and their start and end days
 locations_t <- data.frame(uniqueloctag = unique(tooltides$uniqueloctag)) 
-locations_t <- left_join(locations_t, tooltides[,c("uniqueloctag", "dep_start", "dep_end", "locationfactor", "toolusers")], by = "uniqueloctag")
+locations_t <- left_join(locations_t, tooltides[,c("uniqueloctag", "dep_start", "dep_end", "locationfactor", "toolusers", "mediatype")], by = "uniqueloctag")
 locations_t <- locations_t[!duplicated(locations_t$uniqueloctag),]
 # take time off and keep just date variable
 locations_t$dep_startday <- as.Date(locations_t$dep_start, "%Y-%m-%d")
@@ -1297,8 +1371,10 @@ for (i in 1:nrow(locations_t)) {
 
 locations_t2 <- aggregate(locations_t$dep_days, list(locationfactor  = locations_t$locationfactor, toolusers = locations_t$toolusers), FUN = sum)
 
-sum(locations_t$dep_days[locations_t$toolusers == "Tool-users"])
+sum(locations_t$dep_days[locations_t$toolusers == "Non-tool-users"])
 sum(locations_t2$x)
+
+ftable(locations_t$mediatype)
 
 # How many locations
 nrow(locations_t2)
@@ -1308,17 +1384,20 @@ summary(as.numeric(locations_t2$x))
 # average number of trapping days per deployment
 summary(as.numeric(locations_t$dep_days))
 # number of deployments per location
-max(as.matrix(ftable(locations_t$locationfactor)))
 mean(as.matrix(ftable(locations_t$locationfactor)))
+max(as.matrix(ftable(locations_t$locationfactor)))
+sort(as.matrix(ftable(locations_t$locationfactor)))
 
 # distances to coast
-min(tooltides$distcoast[which(tooltides$toolusers == "Tool-users")])
-max(tooltides$distcoast[which(tooltides$toolusers == "Tool-users")])
-min(tooltides$distcoast[which(tooltides$toolusers == "Non-tool-users")])
-max(tooltides$distcoast[which(tooltides$toolusers == "Non-tool-users")])
+summary(tooltides$distcoast[which(tooltides$toolusers == "Tool-users" & tooltides$datatype == "non-grid")])
+summary(tooltides$distcoast[which(tooltides$toolusers == "Tool-users" & tooltides$datatype == "grid")])
+summary(tooltides$distcoast[which(tooltides$toolusers == "Non-tool-users" & tooltides$datatype == "non-grid")])
+summary(tooltides$distcoast[which(tooltides$toolusers == "Non-tool-users" & tooltides$datatype == "grid")])
 
 # number of capuchins per sequence 
 round(mean(tooltides$n),2)
 min(tooltides$n)
 max(tooltides$n)
 round(sd(tooltides$n),2)
+# plot of number of observation days vs nr of capuchins detections
+ggplot(tooltides, aes(x = dep_length_hours)) + geom_point(stat = "count") 
